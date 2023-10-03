@@ -21,9 +21,10 @@ Example of usages:
 
 ```
 ❯ python3 create_users\ and\ teams.py 
-Syntax: create_users and teams.py <URL> <API_KEY> <CSV teams> <CSV users>
+Syntax: create_users and teams.py <URL> <API_KEY> <CSV teams> <CSV users> <notify>
+<notify> must be True or False. If True, an e-mail with credentials is sent to every users created.
 
-❯ python3 create_users\ and\ teams.py https://REDACTED_CTFD_URL REDACTED_API_KEY teams.csv users.csv 
+❯ python3 create_users\ and\ teams.py https://REDACTED_CTFD_URL REDACTED_API_KEY teams.csv users.csv False
 [+] Injecting teams & users in CTFd :
 	URL: https://REDACTED_CTFD_URL
 	API_KEY: REDACTED_API_KEY

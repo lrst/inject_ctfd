@@ -1,16 +1,25 @@
 import requests as r
 import sys, csv
 
-if len(sys.argv) != 5:
-    print(f'Syntax: {sys.argv[0]} <URL> <API_KEY> <CSV teams> <CSV users>')
+def syntax():
+    print(f'Syntax: {sys.argv[0]} <URL> <API_KEY> <CSV teams> <CSV users> <notify>')
+    print(f'<notify> must be True or False. If True, an e-mail with credentials is sent to every users created.')
     exit(1)
-_, url, apikey, teams_filename, users_filename = sys.argv
+
+if len(sys.argv) != 6:
+    syntax()
+_, url, apikey, teams_filename, users_filename, notify = sys.argv
+if notify not in ['True', 'False']:
+    syntax()
+notify = (notify == 'True')
+
 
 print(f'[+] Injecting teams & users in CTFd :')
 print(f'\tURL: {url}')
 print(f'\tAPI_KEY: {apikey}')
 print(f'\tTeams CSV: {teams_filename}')
 print(f'\tUsers CSV: {users_filename}')
+print(f'\tNotify: {notify}')
 
 headers = {"Authorization": f"Token {apikey}", "Content-Type": "application/json"}
 
@@ -82,7 +91,10 @@ def create_teams(teams):
 
 
 # Create users
-def create_users(users, teams):
+def create_users(users, teams, notify):
+    params = {}
+    if notify:
+        params['notify'] = True
     for user in users:
         team_id = teams[user['team']]
         if not team_id:
@@ -92,7 +104,7 @@ def create_users(users, teams):
         # Create the user
         payload = {'name': user['name'], 'email': user['email'], 'password': user['password']}
         try:
-            a = r.post(url + "/api/v1/users", headers=headers, json=payload, params={'notify': False})
+            a = r.post(url + "/api/v1/users", headers=headers, json=payload, params=params)
             if a.status_code != 200:
                 print(f'\tWarn - unable to create user {user["name"]}: {_format_request_err(a)}')
                 continue
@@ -105,7 +117,7 @@ def create_users(users, teams):
         user_id = results['data']['id']
         payload = {'user_id': user_id}
         try:
-            a = r.post(url + f"/api/v1/teams/{team_id}/members", headers=headers, json=payload, params={'notify': False})
+            a = r.post(url + f"/api/v1/teams/{team_id}/members", headers=headers, json=payload)
             if a.status_code != 200:
                 print(f'\tWarn - unable to add user {user["name"]} to team {user["team"]}: {_format_request_err(a)}')
                 continue
@@ -137,4 +149,4 @@ if __name__ == '__main__':
     print(f'\t{len(teams)} teams found.')
 
     print(f'[+] Create users...')
-    create_users(users, teams)
+    create_users(users, teams, notify)
